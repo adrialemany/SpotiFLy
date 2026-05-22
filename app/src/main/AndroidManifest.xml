@@ -19,6 +19,7 @@
 
     <queries>
         <package android:name="com.example.spotifly" />
+        <package android:name="org.jellyfin.mobile" />
     </queries>
 
     <application

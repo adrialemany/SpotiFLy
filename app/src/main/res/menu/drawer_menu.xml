@@ -17,7 +17,10 @@
                 android:id="@+id/nav_settings"
                 android:title="@string/menu_settings"
                 android:icon="@android:drawable/ic_menu_preferences" />
-
+            <item
+                android:id="@+id/nav_anime"
+                android:icon="@android:drawable/ic_menu_slideshow"
+                android:title="Servidor d'Anime" />
             <item
                 android:id="@+id/nav_logout"
                 android:title="Tancar Sessió"

@@ -1394,6 +1394,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             startActivity(new Intent(MainActivity.this, SettingsActivity.class));
             overridePendingTransition(R.anim.slide_up_enter, R.anim.hold);
         }
+        else if (i.getItemId() == R.id.nav_anime) {
+            launchJellyfinServer();
+        }
         else if(i.getItemId()==R.id.nav_logout) logoutUser();
         drawerLayout.closeDrawer(GravityCompat.START);
         return true;
@@ -2478,5 +2481,49 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 e.printStackTrace();
             }
         }
+    }
+
+    private void launchJellyfinServer() {
+        Toast.makeText(this, "Connectant amb el servidor d'Anime...", Toast.LENGTH_SHORT).show();
+
+        executor.execute(() -> {
+            try {
+                // 1. Demanem la URL al backend
+                Request request = new Request.Builder()
+                        .url(Config.SERVER_URL + "/anime/server")
+                        .build();
+
+                Response response = client.newCall(request).execute();
+
+                if (response.isSuccessful()) {
+                    String resStr = response.body().string();
+                    JSONObject json = new JSONObject(resStr);
+                    final String animeUrl = json.getString("url");
+
+                    mainHandler.post(() -> {
+                        // 2. Copiem la URL al porta-retalls automàticament
+                        android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                        android.content.ClipData clip = android.content.ClipData.newPlainText("Jellyfin URL", animeUrl);
+                        clipboard.setPrimaryClip(clip);
+
+                        Toast.makeText(MainActivity.this, "URL copiada! Apega-la al servidor de Jellyfin.", Toast.LENGTH_LONG).show();
+
+                        // 3. Obrim l'app oficial de Jellyfin
+                        Intent launchIntent = getPackageManager().getLaunchIntentForPackage("org.jellyfin.mobile");
+                        if (launchIntent != null) {
+                            startActivity(launchIntent);
+                        } else {
+                            // Si no la té instal·lada, l'enviem al Google Play
+                            Toast.makeText(MainActivity.this, "Instal·la Jellyfin primer", Toast.LENGTH_SHORT).show();
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=org.jellyfin.mobile")));
+                        }
+                    });
+                } else {
+                    mainHandler.post(() -> Toast.makeText(MainActivity.this, "No s'ha trobat la URL de l'Anime", Toast.LENGTH_SHORT).show());
+                }
+            } catch (Exception e) {
+                mainHandler.post(() -> Toast.makeText(MainActivity.this, "Error de connexió", Toast.LENGTH_SHORT).show());
+            }
+        });
     }
 }
